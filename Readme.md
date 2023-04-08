@@ -101,7 +101,7 @@ Most granular object of K8s. One pod can have multiples containers.
 Manifest contains 4 sections:
 
 1. apiVersion
-1. king
+1. kind
 1. metadata
 1. spec
 
@@ -110,3 +110,85 @@ kubectl run nginx --image nginx
 
 kubectl run neing --image nginx --dry-run=client -o yaml > niginx.yaml
 ```
+
+## Replication Controller
+
+Old version of replica set. Responsible to scaling pods.
+
+1. apiVersion
+1. kind
+1. metadata
+1. spec
+    1. template - All pod manifest wihtout apiVersion and kind
+    1. replica - number of pods
+
+Eg
+
+```yaml
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: rc-nginx
+  labels:
+    type: rc
+    tier: web
+spec:
+  template:
+    metadata:
+      name: nginx
+      labels:
+        tier: web
+    spec:
+      containers:
+        - name: nginx
+          image: nginx
+  replicas: 3
+  ```
+
+## ReplicaSet
+
+Like replication controller with one difference. We can select pods with selector. This mechanism can be used to running pods.
+
+```yaml
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: nginx-rs
+  labels:
+    tier: web
+spec:
+  template:
+    metadata:
+      name: nginx-rs
+      labels:
+        tier: web
+        parent: nginx-rs
+    spec:
+      containers:
+        - name: nginx
+          image: nginx
+  replicas: 3
+  selector:
+    matchLabels:
+      parent: nginx-rs
+```
+
+Command to scale:
+
+1. Edit the manifest and replace
+
+    ```sh
+    kubectl replace -f manifests/replicaset.yaml
+    ```
+
+1. Scale with point to manifest filename:
+
+   ```sh
+    kubectl scale --replicas=6 -f manifests/replicaset.yaml
+    ```
+
+1. Scale with replicaset name
+
+   ```sh
+    kubectl scale --replicas=6 -f manifests/replicaset.yaml
+    ```
