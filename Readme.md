@@ -190,5 +190,73 @@ Command to scale:
 1. Scale with replicaset name
 
    ```sh
-    kubectl scale --replicas=6 -f manifests/replicaset.yaml
+    kubectl scale --replicas=6 replicaset nginx-rs
     ```
+
+## Deployment
+
+Can create versions of application. Same manifest as Replicaset except the kind.
+
+```sh
+kubectl create deployment nginx-deploy --image=nginx --replicas=3 --dry-run=client -o yaml > manifests/deployment.yaml
+```
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deploy
+  labels:
+    tier: web
+spec:
+  template:
+    metadata:
+      name: nginx-deploy
+      labels:
+        tier: web
+        parent: nginx-deploy
+    spec:
+      containers:
+        - name: nginx
+          image: nginx
+  replicas: 3
+  selector:
+    matchLabels:
+      parent: nginx-deploy
+```
+
+## Services
+
+Objects that enables communication between pods. Can be one of 3 types:
+
+1. Nodeport - Exposes only a port to external access
+1. Clientip - Provides loadbalancer to internal services
+1. Loadbalancer - Provides loadbalancer to external acess
+
+Creating service
+
+```sh
+kubectl create svc nodeport nginx-svc --node-port=30080 --tcp=8080:8080 --dry-run=client -o yaml > manifests/service.yaml
+```
+
+Eg.
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: nginx-svc
+  name: nginx-svc
+spec:
+  ports:
+    - name: 8080-8080
+      nodePort: 30080
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+  selector:
+    app: nginx-svc
+  type: NodePort
+
+```
