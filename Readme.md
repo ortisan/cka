@@ -260,3 +260,33 @@ spec:
   type: NodePort
 
 ```
+
+## Namespace
+
+Utilized to separate K8s objects. Like folder.
+
+Dns structure:
+
+```sh
+<service-name>.<namespace>.<object-type>.<default domain name>
+Eg: nginx.dev.svc.cluster.local
+```
+
+Creating namespace:
+
+```sh
+kubectl create namespace dev
+```
+
+```yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dev
+```
+
+Listing objects for namespace "dev":
+
+```sh
+kubectl get pod --namespace=dev
+```
