@@ -36,6 +36,20 @@ etcdctl put greeting "Hello Etcd"
 etcdctl get greeting
 ```
 
+## Pre Reqs
+
+Produtivity
+
+```sh
+echo "source <(kubectl completion bash)" >> ~/.bashrc
+alias k=kubectl
+complete -o default -F __start_kubectl k
+export dry='--dry-run=client -o=yaml'
+export oy='-o=yaml'
+alias kn='kubectl config set-context --current --namespace '
+export ETCDCTL_API=3
+```
+
 ## Kube API Server
 
 1. Authenticate user
@@ -108,7 +122,7 @@ Manifest contains 4 sections:
 ```sh
 kubectl run nginx --image nginx
 
-kubectl run neing --image nginx --dry-run=client -o yaml > niginx.yaml
+kubectl run nginx --image nginx --dry-run=client -o yaml > niginx.yaml
 ```
 
 ## Replication Controller
@@ -290,3 +304,49 @@ Listing objects for namespace "dev":
 ```sh
 kubectl get pod --namespace=dev
 ```
+
+## Taints and Tolarations
+
+Flag that marks which pods cannot be schedule if has the labels. In case the Pod has tolerations to these taint, it will be ignored.
+
+```sh
+kubectl taint nodes <nodename> key=value:<taint-effect>
+```
+
+taint-effect can be:
+
+1. NoSchedule
+1. PreferNoSchedule
+1. NoExecute
+
+## DaemonSet
+
+Program that is installed in each node. Can be kubelet, log metrics aggregator, istio etc...
+
+How to create?
+
+By default we cannot use the kubectl create command. The manifest between DaemonSet and Deployment are very similar.
+
+```sh
+kubectl create deployment myds --image=fluentbit:latest -o yaml > myds.yaml
+```
+
+Change the kind and apply the manifest file.
+
+## Static Pod
+
+Feature that permits schedule pod manually.
+
+We can create pod copying manifest file to kube config path.
+
+How find these files?
+
+Check kubelet config file:
+
+```sh
+cat /var/lib/kubelet/config.yaml
+```
+
+check for **staticPodPath**
+
+By default its is **/etc/kubernetes/manifests**
