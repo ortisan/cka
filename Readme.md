@@ -86,6 +86,13 @@ To show configs:
 ps -aux | grep kube-scheduler
 ```
 
+Docs:
+
+- [How Scheduler Work 1](https://jvns.ca/blog/2017/07/27/how-does-the-kubernetes-scheduler-work/)
+- [How Scheduler Work 2](https://stackoverflow.com/questions/28857993/how-does-kubernetes-scheduler-work)
+- [Advanced Scheduling](https://kubernetes.io/blog/2017/03/advanced-scheduling-in-kubernetes/)
+- [Scheduling Hieararchy Overview](https://github.com/kubernetes/community/blob/master/contributors/devel/sig-scheduling/scheduling_code_hierarchy_overview.md)
+
 ## Kubelet
 
 Sidecar that runs in all nodes.
@@ -350,3 +357,67 @@ cat /var/lib/kubelet/config.yaml
 check for **staticPodPath**
 
 By default its is **/etc/kubernetes/manifests**
+
+## Multiple Schedulers
+
+Schedulers are responsible by deploy pods into nodes. A scheduler watches for newly created Pods that have no Node assigned. For every Pod that the scheduler discovers, the scheduler becomes responsible for finding the best Node for that Pod to run on.
+
+You can configure your own scheduler using one of these strategies:
+
+1. Defining the new service and specifying the scheduler manifest.
+
+ ```sh
+  vi my-scheduler.yaml
+  ```
+
+  ```yaml
+  apiVersion: kubernetes.config.k8s.io/v1
+  kind: KubernetesSchedulerConfiguration
+  profiles:
+    - schedulerName: "my-scheduler"
+  ```
+
+  ```sh
+  custom-scheduler.service
+  ExecStart=/usr/local/bin/kube-scheduler \
+    --config=/etc/kubernetes/config/custom-sheduler.yaml
+  ```
+
+2. Starting scheduler as pod
+
+  ```yaml
+  apiVersion: v1
+  kind: Pod
+  metadata:
+    name: my-custom-scheduler
+    namespace: kube-system
+  spec:
+    containers:
+    - command:
+      - kube-scheduler
+      - --address=127.0.0.1
+      - --kubeconfig=/etc/kubernetes/scheduler.conf
+      - --config=/etc/kubernetes/my-scheduler.yaml
+    
+      image: k8s.gcr.io/kube-scheduler-amd64:v1.26.6
+      name: kube-scheduler
+  ```
+
+ 
+
+  ```sh
+  my-scheduler.service
+  ExecStart=/usr/local/bin/kube-scheduler \
+    --config=/etc/kubernetes/config/my-scheduler.yaml
+  ```
+
+
+
+## Metrics
+
+Install metrics server
+
+```sh
+kubectl top nodes
+kubectl top pods
+```
