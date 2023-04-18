@@ -421,3 +421,53 @@ Install metrics server
 kubectl top nodes
 kubectl top pods
 ```
+
+## Rolling Update and Rollbacks
+
+When a deploy is made, K8s creates a new revision. These revision is a new version of the application that can be rollout or rollback.
+
+There are 2 strategies of deployment
+
+- Recreate: Destroy all pods of last revision and provisione all pods of new revision. Cons: Downtime.
+- Rolling Update (Default strategy): Updates a % of pods by new versions and when the new version is up (based on probes), its make a rollout to the remaining % of pods.
+
+Commands:
+
+```sh
+# status rollout
+kubectl rollout status deployment/<deployment name>
+# history
+kubectl rollout history deployment/<deployment name>
+# rollback
+kubectl rollout undo deployment/<deployment name>
+```
+
+## Config Map
+
+Standard way to pass environment variables to pods.
+
+```sh
+kubectl create configmap -h
+kubectl create configmap my-configmap --from-literal=HELLO=world --dry-run=client -o yaml > manifests/configmap.yaml
+```
+
+To inject to por use the **envFrom** block. Eg:
+```yaml
+# manifests/test-configmap-pod.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: test-configmap
+spec:
+  containers:
+    - image: ubuntu
+      name: test-confimap
+      command:
+        - echo
+        - "$HELLO"
+      envFrom:
+        - configMapRef:
+            name: my-configmap
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+```
