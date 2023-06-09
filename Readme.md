@@ -1,3 +1,68 @@
+# CKA
+
+## Install K8S
+
+1. Install Virtualbox
+2. Install Vagrant
+3. Run
+   ```sh
+    vagrant up
+   ```
+    1. To connect into controplane and nodes
+      ```sh
+      ssh controlplane
+      ssh node01
+      ssh node02
+      ```
+    2. [Install Kubeadmin](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/)
+
+## Certificates K8S
+
+The communication between the K8S componentes are done by TLS. The following certificates neet to be generated and configure to provide a security layer to cluster.
+
+### Certificate Authority (CA)
+
+Certificate Authority is the entity in the PKI that assign, stores and issue digital certificates.
+
+To generate the CA certs:
+
+- Generate Key
+  ```sh
+  openssl getnrsa -out ca.key 2028
+  ```
+- Generate Signing Request (CSR)
+  ```sh
+  openssl req -new -key ca.key -subj "/CN=KUBERNETES-CA" -out ca.csr
+  ```
+- Sign certificate
+  ```sh
+  openssl x509 -req -in ca.csr -signkey ca.key -out ca.crt
+  ```
+
+### Admin User
+
+Admin needs to connect and execute administrative tasks into the cluster. 
+
+To generate the certificates:
+
+- Generate key
+  ```ssh
+  openssl genrsa -out admin.key 2048
+  ```
+
+- Generate CSR
+  ```sh
+  openssl req -new -key admin.key -subj \
+    "/CN=kube-admin/O=system:masters" -out admin.csr
+  ```
+  Note that CSR we configure with organization(O). That config will need when use RBAC.
+
+- Sign certificate
+  ```sh
+  openssl x509 -req -in admin.csr -CA ca.crt -CAkey ca.key -out admin.crt
+  ```
+
+
 ## Minikube
 
 Install
@@ -49,6 +114,8 @@ export oy='-o=yaml'
 alias kn='kubectl config set-context --current --namespace '
 export ETCDCTL_API=3
 ```
+
+
 
 ## Kube API Server
 
@@ -470,4 +537,12 @@ spec:
             name: my-configmap
   dnsPolicy: ClusterFirst
   restartPolicy: Always
+```
+
+## Troubleshoting
+
+### Check containers
+
+```sh
+crictl ps
 ```
