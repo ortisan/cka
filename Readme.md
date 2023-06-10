@@ -539,6 +539,40 @@ spec:
   restartPolicy: Always
 ```
 
+## [Certificate Sign Request](https://kubernetes.io/docs/reference/access-authn-authz/certificate-signing-requests/)
+
+The access with certificates involves generate a CSR kubernetes object.
+
+Eg:
+
+```yaml
+# manifests/certificate-sign-request.yaml
+apiVersion: certificates.k8s.io/v1
+kind: CertificateSigningRequest
+metadata:
+  name: myuser
+spec:
+  request: ...
+  signerName: kubernetes.io/kube-apiserver-client
+  expirationSeconds: 86400  # one day
+  usages:
+  - client auth
+  - digital signature
+  - key encipherment
+```
+
+for the **spec.request** attribute, use the base64 format of csr file.
+
+```sh
+cat mycsr.csr | base64 -w 0
+```
+
+### Approving
+
+```sh
+kubectl certificate approve <csr name>
+```
+
 ## Troubleshoting
 
 ### Check containers
@@ -546,3 +580,4 @@ spec:
 ```sh
 crictl ps
 ```
+
